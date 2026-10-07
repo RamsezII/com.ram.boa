@@ -1,0 +1,38 @@
+[
+  {
+    "package": "Microsoft.CodeAnalysis.Common",
+    "version": "4.13.0",
+    "framework": "netstandard2.0",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.common/4.13.0/microsoft.codeanalysis.common.4.13.0.nupkg",
+    "packageSha256": "06ee5ebf724cf9fc9ff544a72ccec025b7799459a955f6b19ba11062860cf557",
+    "dll": "Microsoft.CodeAnalysis.dll",
+    "dllSha256": "539fff67d8d9b51f7447b6a6976cc308900523e9e73ff10992d61c1457bffd0e"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.CSharp",
+    "version": "4.13.0",
+    "framework": "netstandard2.0",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.csharp/4.13.0/microsoft.codeanalysis.csharp.4.13.0.nupkg",
+    "packageSha256": "8f33bbff68fbacfaaee17b66e25861d888da8b0f9a524891fb2627f9af2683f3",
+    "dll": "Microsoft.CodeAnalysis.CSharp.dll",
+    "dllSha256": "f821a111a5bb6404a1000884bd52bcf911a47f3449ae3a793bdc8f632451f04d"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.Scripting.Common",
+    "version": "4.13.0",
+    "framework": "netstandard2.0",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.scripting.common/4.13.0/microsoft.codeanalysis.scripting.common.4.13.0.nupkg",
+    "packageSha256": "d19db96bc61cecddd8e7d4ddd206b91fbf1d50e655f32a12e8fb9ba9c0ac92d0",
+    "dll": "Microsoft.CodeAnalysis.Scripting.dll",
+    "dllSha256": "a672217e49e760ab645b24d242fcced899266714746a8efdddb5205201936627"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.CSharp.Scripting",
+    "version": "4.13.0",
+    "framework": "netstandard2.0",
+    "source": "https://api.nuget.org/v3-flatcontainer/microsoft.codeanalysis.csharp.scripting/4.13.0/microsoft.codeanalysis.csharp.scripting.4.13.0.nupkg",
+    "packageSha256": "e1e4f29c0338aee7f68180cdac499593696ac02d1a64f2d6107d380b497002b5",
+    "dll": "Microsoft.CodeAnalysis.CSharp.Scripting.dll",
+    "dllSha256": "d5fd669c0ea47af2d9965a18b3e22006a576448bfb2a65513b8e5b538fc67f96"
+  }
+]
