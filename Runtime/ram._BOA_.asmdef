@@ -4,7 +4,8 @@
     "references": [
         "GUID:ec96f6dc48fee4244bcebc247464e471",
         "GUID:2a84e452762c9634994f1da664544658",
-        "GUID:02bff2b282f91b84680849955c7860bc"
+        "GUID:02bff2b282f91b84680849955c7860bc",
+        "GUID:0308a0376a5119646aa5084f7da0a023"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -23,6 +24,11 @@
             "name": "com.ram16.terminal",
             "expression": "",
             "define": "HAS_TERMINAL"
+        },
+        {
+            "name": "com.ram16.term",
+            "expression": "",
+            "define": "HAS_TERM"
         }
     ],
     "noEngineReferences": false
