@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public static class Boa
+partial class Boa
 {
     public static void Log_console(object message, Object context = default) => Debug.Log(message, context);
 #if HAS_SGUI
