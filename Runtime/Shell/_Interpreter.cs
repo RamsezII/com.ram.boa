@@ -1,6 +1,8 @@
 ﻿using _ARK_;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using System.Linq;
 using System.Text;
 using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
@@ -16,9 +18,25 @@ namespace _BOA_
             {
                 error = null;
 
-                var options = new CSharpParseOptions(kind: SourceCodeKind.Script);
-                var tree = CSharpSyntaxTree.ParseText(text, options);
+                var script = CSharpScript.Create<object>(text);
+                var compilation = script.GetCompilation();
+                var tree = compilation.SyntaxTrees.Single();
                 var root = tree.GetRoot();
+
+                foreach (var diagnostic in compilation.GetDiagnostics())
+                {
+                    Color color = diagnostic.Severity switch
+                    {
+                        DiagnosticSeverity.Hidden => theme.hidden,
+                        DiagnosticSeverity.Info => theme.info,
+                        DiagnosticSeverity.Warning => theme.warning,
+                        DiagnosticSeverity.Error => theme.error,
+                        _ => throw new System.NotImplementedException(),
+                    };
+                    var position = diagnostic.Location.GetLineSpan().StartLinePosition;
+                    error = $"{new string('\n', 1 + position.Line)}{new string(' ', position.Character)}└──> {diagnostic.Id.Bold()}: {diagnostic.GetMessage()}".SetColor(color);
+                    break;
+                }
 
                 var sb = new StringBuilder();
                 int cursor = 0;
@@ -27,10 +45,13 @@ namespace _BOA_
                     if (token.Span.Length > 0)
                     {
                         if (token.SpanStart > cursor)
-                            sb.Append(text[cursor..token.SpanStart].SetColor(theme.fallback_default));
+                            sb.Append(text[cursor..token.SpanStart]);
                         cursor = token.Span.End;
                         sb.Append(token.Text.SetColor(GetTokenColor(token, theme)));
                     }
+
+                if (cursor < text.Length)
+                    sb.Append(text[cursor..]);
 
                 lint = sb.ToString();
 
