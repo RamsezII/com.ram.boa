@@ -18,7 +18,7 @@ namespace _BOA_
             {
                 error = null;
 
-                var script = CSharpScript.Create<object>(text);
+                var script = CSharpScript.Create<object>(text, options: assemblies);
                 var compilation = script.GetCompilation();
                 var tree = compilation.SyntaxTrees.Single();
                 var root = tree.GetRoot();
@@ -71,6 +71,12 @@ namespace _BOA_
                         _ => theme.fallback_default,
                     };
                 }
+            },
+            execution = (string text) =>
+            {
+                using var shell = new Shell();
+                var result = shell.Execute(text);
+                return result;
             },
         };
 
