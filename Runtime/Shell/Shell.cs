@@ -9,8 +9,10 @@ namespace _BOA_
 {
     public sealed partial class Shell : IDisposable
     {
-        [AutoStaticsCleanup] static ScriptOptions assemblies = ScriptOptions.Default;
         public static void AddAssemblies(params Assembly[] assemblies) => Shell.assemblies = Shell.assemblies.AddReferences(assemblies);
+        [AutoStaticsCleanup] static ScriptOptions assemblies = ScriptOptions.Default;
+
+        ScriptState<object> state;
 
         //----------------------------------------------------------------------------------------------------------
 
@@ -27,12 +29,22 @@ namespace _BOA_
 
         //----------------------------------------------------------------------------------------------------------
 
-        public object Execute(string text) => CSharpScript.EvaluateAsync<object>(text, options: assemblies).GetAwaiter().GetResult();
+        public object Execute(string text)
+        {
+            if (state is null)
+                state = CSharpScript.RunAsync<object>(text, options: assemblies).GetAwaiter().GetResult();
+            else
+                state = state.ContinueWithAsync<object>(text, options: assemblies).GetAwaiter().GetResult();
+            return state.ReturnValue;
+        }
+
+        public void Reset() => state = null;
 
         //----------------------------------------------------------------------------------------------------------
 
         public void Dispose()
         {
+            Reset();
         }
     }
 }
