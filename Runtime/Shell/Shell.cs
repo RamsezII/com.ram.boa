@@ -1,13 +1,13 @@
+using _ARK_;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using System;
 using System.Reflection;
 using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace _BOA_
 {
-    public sealed partial class Shell : IDisposable
+    public sealed partial class Shell : ArkShell
     {
         public static void AddAssemblies(params Assembly[] assemblies) => Shell.assemblies = Shell.assemblies.AddReferences(assemblies);
         [AutoStaticsCleanup] static ScriptOptions assemblies = ScriptOptions.Default;
@@ -23,7 +23,7 @@ namespace _BOA_
                 typeof(System.Linq.Enumerable).Assembly,
                 typeof(System.Dynamic.ExpandoObject).Assembly,
                 Assembly.Load("Microsoft.CSharp"),
-                typeof(UnityEngine.Object).Assembly
+                typeof(Object).Assembly
             );
         }
 
@@ -38,13 +38,12 @@ namespace _BOA_
             return state.ReturnValue;
         }
 
-        public void Reset() => state = null;
-
         //----------------------------------------------------------------------------------------------------------
 
-        public void Dispose()
+        public override void Clear()
         {
-            Reset();
+            base.Clear();
+            state = null;
         }
     }
 }
