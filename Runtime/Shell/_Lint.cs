@@ -22,10 +22,8 @@ namespace _BOA_
             var tree = compilation.SyntaxTrees.Single();
             var root = tree.GetRoot();
 
-            var diagnostics = compilation.GetDiagnostics();
-            if (diagnostics.Length > 0)
+            foreach (var diagnostic in compilation.GetDiagnostics())
             {
-                var diagnostic = diagnostics[^1];
                 Color color = diagnostic.Severity switch
                 {
                     DiagnosticSeverity.Hidden => theme.hidden,
@@ -36,6 +34,7 @@ namespace _BOA_
                 };
                 var position = diagnostic.Location.GetLineSpan().StartLinePosition;
                 error = $"{new string('\n', 1 + position.Line)}{new string(' ', position.Character)}└──> {diagnostic.Id.Bold()}: {diagnostic.GetMessage()}".SetColor(color);
+                break;
             }
 
             var sb = new StringBuilder();

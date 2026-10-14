@@ -60,7 +60,9 @@ namespace _BOA_
                 using var stream = new MemoryStream();
                 var result = compilation.Emit(stream);
 
-                foreach (var diagnostic in result.Diagnostics)
+                for (int i = 0; i < result.Diagnostics.Length; i++)
+                {
+                    Diagnostic diagnostic = result.Diagnostics[i];
                     switch (diagnostic.Severity)
                     {
                         case DiagnosticSeverity.Info:
@@ -80,6 +82,7 @@ namespace _BOA_
                             Debug.Log(diagnostic.ToSubLog());
                             break;
                     }
+                }
 
                 if (!result.Success)
                     return false;
