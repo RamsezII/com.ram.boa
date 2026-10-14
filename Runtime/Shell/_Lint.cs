@@ -17,7 +17,7 @@ namespace _BOA_
         {
             error = null;
 
-            var script = CSharpScript.Create<object>(text, options: assemblies);
+            var script = CSharpScript.Create<object>(text, options: BoaManager.assemblies);
             var compilation = script.GetCompilation();
             var tree = compilation.SyntaxTrees.Single();
             var root = tree.GetRoot();
