@@ -21,7 +21,10 @@ namespace _BOA_
         protected override void Awake()
         {
             instance = this;
+
             base.Awake();
+
+            CompileScripts();
         }
     }
 }

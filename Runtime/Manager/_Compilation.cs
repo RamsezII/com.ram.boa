@@ -19,6 +19,8 @@ namespace _BOA_
         [AutoStaticsCleanup] internal static ScriptOptions assemblies = ScriptOptions.Default;
         [NoAutoStaticsCleanup] internal static Assembly scriptsAssembly;
 
+        [AutoStaticsCleanup] public static Action beforeCompilation, afterCompilation;
+
         //----------------------------------------------------------------------------------------------------------
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -40,6 +42,8 @@ namespace _BOA_
 
         public static bool CompileScripts()
         {
+            beforeCompilation?.Invoke();
+
             try
             {
                 var dscripts = Path.Combine(NUCLEOR.DFHome.FullName, "scripts").ForceDir();
@@ -51,7 +55,7 @@ namespace _BOA_
                     files.Add(file.FullName);
 
                 var compilation = CSharpCompilation.Create(
-                    assemblyName: $"BoaScripts_{Guid.NewGuid():N}",
+                    assemblyName: $"MACHINECODE_{Guid.NewGuid():N}",
                     syntaxTrees: files.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), path: file)),
                     references: CSharpScript.Create<object>(code: string.Empty, options: assemblies).GetCompilation().References,
                     options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
@@ -95,6 +99,10 @@ namespace _BOA_
             {
                 Debug.LogException(exception);
                 return false;
+            }
+            finally
+            {
+                afterCompilation?.Invoke();
             }
         }
     }
