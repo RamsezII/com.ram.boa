@@ -7,12 +7,12 @@ namespace _BOA_.Dev
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitAssembly()
         {
-            Shell.AddAssemblies(
+            BoaManager.AddAssemblies(
                 typeof(Main).Assembly
             );
 
 #if HAS_SGUI
-            Shell.AddAssemblies(
+            BoaManager.AddAssemblies(
                 typeof(SguiLoggerOverlay).Assembly
             );
 #endif
