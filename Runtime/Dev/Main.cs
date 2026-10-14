@@ -10,12 +10,6 @@ namespace _BOA_.Dev
             BoaManager.AddAssemblies(
                 typeof(Main).Assembly
             );
-
-#if HAS_SGUI
-            BoaManager.AddAssemblies(
-                typeof(SguiLoggerOverlay).Assembly
-            );
-#endif
         }
     }
 }
