@@ -1,15 +1,25 @@
-using UnityEngine;
+using _BOA_;
+using System;
 
-namespace _BOA_.Dev
+[Serializable]
+public abstract partial class BoaComponent : IBoaAssembly
 {
-    static partial class Main
+
+    //----------------------------------------------------------------------------------------------------------
+
+    public virtual void Start()
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void InitAssembly()
-        {
-            BoaManager.AddAssemblies(
-                typeof(Main).Assembly
-            );
-        }
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+
+    public virtual void Update(float deltaTime)
+    {
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+
+    public virtual void Stop()
+    {
     }
 }

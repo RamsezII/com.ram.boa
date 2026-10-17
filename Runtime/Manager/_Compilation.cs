@@ -14,35 +14,61 @@ using UnityEngine.Assemblies;
 
 namespace _BOA_
 {
+    public interface IBoaAssembly
+    {
+    }
+
     partial class BoaManager
     {
-        [AutoStaticsCleanup] internal static ScriptOptions assemblies = ScriptOptions.Default;
-        [NoAutoStaticsCleanup] internal static Assembly scriptsAssembly;
-
+        [AutoStaticsCleanup] internal static ScriptOptions assemblies;
+        [AutoStaticsCleanup] internal static Assembly scriptsAssembly;
         [AutoStaticsCleanup] public static Action beforeCompilation, afterCompilation;
+        [NoAutoStaticsCleanup] static ScriptLoadContext scriptsLoadContext;
 
         //----------------------------------------------------------------------------------------------------------
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void InitAssemblies()
         {
-            scriptsAssembly = null;
-            AddAssemblies(
-                typeof(Enumerable).Assembly,
-                typeof(System.Dynamic.ExpandoObject).Assembly,
-                Assembly.Load("Microsoft.CSharp"),
-                typeof(UnityEngine.Object).Assembly
-            );
+            UnloadScripts();
+            assemblies = ScriptOptions.Default;
+
+            AddAssemblies(Assembly.Load("netstandard"));
+
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+                if (assembly.GetTypes().Any(type => typeof(IBoaAssembly).IsAssignableFrom(type)))
+                    AddAssemblies(assembly);
         }
 
+        [OnCodeUnloading, OnExitingPlayMode]
+        static void UnloadScripts()
+        {
+            var previous = scriptsLoadContext;
+            scriptsLoadContext = null;
+            scriptsAssembly = null;
+            previous?.Unload();
+        }
 
         //----------------------------------------------------------------------------------------------------------
 
         public static void AddAssemblies(params Assembly[] assemblies) => BoaManager.assemblies = BoaManager.assemblies.AddReferences(assemblies);
 
+        public static IEnumerable<Type> GetComponentTypes<T>() where T : class => scriptsAssembly?.GetTypes().Where(type => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type)) ?? Enumerable.Empty<Type>();
+
+        public static Type GetComponentType<T>(string name) where T : class
+        {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            var type = scriptsAssembly?.GetType(name);
+            return type != null && type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type) ? type : null;
+        }
+
         public static bool CompileScripts()
         {
+            Debug.Log($"Start compiling".ToSubLog());
             beforeCompilation?.Invoke();
+            ScriptLoadContext nextContext = null;
 
             try
             {
@@ -91,7 +117,16 @@ namespace _BOA_
                 if (!result.Success)
                     return false;
 
-                scriptsAssembly = CurrentAssemblies.LoadFromBytes(rawAssembly: stream.ToArray());
+                nextContext = new ScriptLoadContext(compilation.AssemblyName);
+                stream.Position = 0;
+                var nextAssembly = nextContext.Load(stream);
+                nextAssembly.GetTypes();
+
+                var previous = scriptsLoadContext;
+                scriptsLoadContext = nextContext;
+                scriptsAssembly = nextAssembly;
+                nextContext = null;
+                previous?.Unload();
 
                 return true;
             }
@@ -102,6 +137,8 @@ namespace _BOA_
             }
             finally
             {
+                nextContext?.Unload();
+                Debug.Log($"Done compiling".ToSubLog());
                 afterCompilation?.Invoke();
             }
         }
