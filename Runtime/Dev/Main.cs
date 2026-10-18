@@ -1,22 +1,16 @@
-using _BOA_;
 using UnityEngine;
 
-public static partial class Boa
+namespace Boa
 {
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void Init()
+    public static partial class Debug
     {
-        BoaManager.AddAssemblies(typeof(Boa).Assembly);
-    }
-
-    //--------------------------------------------------------------------------------------------------------------
-
-    public static void Log(object message, Object context = default)
-    {
+        public static void Log(object message, Object context = default)
+        {
 #if HAS_SGUI
-        SguiLoggerOverlay.Log(message, context);
+            SguiLoggerOverlay.Log(message, context);
 #else
-        Debug.Log(message, context);
+            Debug.Log(message, context);
 #endif
+        }
     }
 }

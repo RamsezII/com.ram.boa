@@ -35,6 +35,8 @@ namespace _BOA_
             assemblies = ScriptOptions.Default;
 
             AddAssemblies(Assembly.Load("netstandard"));
+            AddAssemblies(Assembly.Load("UnityEngine.CoreModule"));
+            AddAssemblies(typeof(Boa.Main).Assembly);
 
             foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
                 if (assembly.GetTypes().Any(type => typeof(IBoaAssembly).IsAssignableFrom(type)))
