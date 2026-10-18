@@ -22,7 +22,8 @@ namespace _BOA_
     {
         [AutoStaticsCleanup] internal static ScriptOptions assemblies;
         [AutoStaticsCleanup] internal static Assembly scriptsAssembly;
-        [AutoStaticsCleanup] public static Action beforeCompilation, afterCompilation;
+        [AutoStaticsCleanup] public static Action beforeScriptsReload, afterScriptsReload;
+        [AutoStaticsCleanup] static bool compiling;
         [NoAutoStaticsCleanup] static ScriptLoadContext scriptsLoadContext;
 
         //----------------------------------------------------------------------------------------------------------
@@ -43,6 +44,9 @@ namespace _BOA_
         [OnCodeUnloading, OnExitingPlayMode]
         static void UnloadScripts()
         {
+            if (scriptsLoadContext != null)
+                Notify(beforeScriptsReload);
+
             var previous = scriptsLoadContext;
             scriptsLoadContext = null;
             scriptsAssembly = null;
@@ -66,8 +70,11 @@ namespace _BOA_
 
         public static bool CompileScripts()
         {
+            if (compiling)
+                return false;
+
+            compiling = true;
             Debug.Log($"Start compiling".ToSubLog());
-            beforeCompilation?.Invoke();
             ScriptLoadContext nextContext = null;
 
             try
@@ -122,11 +129,21 @@ namespace _BOA_
                 var nextAssembly = nextContext.Load(stream);
                 nextAssembly.GetTypes();
 
+                Notify(beforeScriptsReload);
+
                 var previous = scriptsLoadContext;
                 scriptsLoadContext = nextContext;
                 scriptsAssembly = nextAssembly;
                 nextContext = null;
-                previous?.Unload();
+
+                try
+                {
+                    Notify(afterScriptsReload);
+                }
+                finally
+                {
+                    previous?.Unload();
+                }
 
                 return true;
             }
@@ -138,9 +155,25 @@ namespace _BOA_
             finally
             {
                 nextContext?.Unload();
+                compiling = false;
                 Debug.Log($"Done compiling".ToSubLog());
-                afterCompilation?.Invoke();
             }
+        }
+
+        static void Notify(Action callbacks)
+        {
+            if (callbacks == null)
+                return;
+
+            foreach (Action callback in callbacks.GetInvocationList().Cast<Action>())
+                try
+                {
+                    callback();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
         }
     }
 }
