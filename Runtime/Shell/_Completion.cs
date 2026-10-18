@@ -1,35 +1,77 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.Scripting.LifecycleManagement;
 
 namespace _BOA_
 {
-    public readonly struct CodeCompletionResult
+    public readonly struct CodeCompletionEdit
+    {
+        public readonly string Text;
+        public readonly int Cursor;
+
+        public CodeCompletionEdit(string text, int cursor)
+        {
+            Text = text;
+            Cursor = cursor;
+        }
+    }
+
+    public sealed class CodeCompletionResult : IDisposable
     {
         public readonly int Start, End;
         public readonly string[] Suggestions;
+        readonly AdhocWorkspace workspace;
+        readonly Document document;
+        readonly CompletionService service;
+        readonly CompletionItem[] items;
+        readonly string source;
 
-        public CodeCompletionResult(int start, int end, string[] suggestions)
+        internal CodeCompletionResult(AdhocWorkspace workspace, Document document, CompletionService service, CompletionItem[] items, string source, int start, int end)
         {
+            this.workspace = workspace;
+            this.document = document;
+            this.service = service;
+            this.items = items;
+            this.source = source;
             Start = start;
             End = end;
-            Suggestions = suggestions;
+            Suggestions = items.Select(item => item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix).ToArray();
         }
+
+        public Task<CodeCompletionEdit> GetChangeAsync(string suggestion, CancellationToken cancellationToken = default)
+        {
+            int index = Array.IndexOf(Suggestions, suggestion);
+            if (index < 0)
+                throw new ArgumentException("Unknown completion item.", nameof(suggestion));
+            return Task.Run(async () =>
+            {
+                var change = await service.GetChangeAsync(document, items[index], cancellationToken: cancellationToken).ConfigureAwait(false);
+                var edit = change.TextChange;
+                string text = source[..edit.Span.Start] + edit.NewText + source[edit.Span.End..];
+                return new CodeCompletionEdit(text, change.NewPosition ?? edit.Span.Start + (edit.NewText?.Length ?? 0));
+            }, cancellationToken);
+        }
+
+        public void Dispose() => workspace.Dispose();
     }
 
     partial class Shell
     {
-        public static Task<CodeCompletionResult> CompleteCodeAsync(string code, int cursor, string filePath = null, string scriptsDirectory = null, CancellationToken cancellationToken = default)
+        [NoAutoStaticsCleanup] static readonly Lazy<MefHostServices> completionHost = new(() => MefHostServices.Create(new[] { typeof(Workspace).Assembly, typeof(CSharpFormattingOptions).Assembly, typeof(CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features") }));
+
+        public static Task<CodeCompletionResult> CompleteCodeAsync(string code, int cursor, string filePath = null, string scriptsDirectory = null, CancellationToken cancellationToken = default, bool explicitInvocation = false)
         {
             if (code == null)
                 throw new ArgumentNullException(nameof(code));
@@ -41,33 +83,39 @@ namespace _BOA_
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                int start = cursor, end = cursor;
-                while (start > 0 && SyntaxFacts.IsIdentifierPartCharacter(code[start - 1]))
-                    --start;
-                if (start > 0 && code[start - 1] == '@')
-                    --start;
-                while (end < code.Length && SyntaxFacts.IsIdentifierPartCharacter(code[end]))
-                    ++end;
-                string prefix = code[start..cursor].TrimStart('@');
+                var workspace = new AdhocWorkspace(completionHost.Value);
+                try
+                {
+                    var references = CSharpScript.Create<object>(string.Empty, options).GetCompilation().References;
+                    var project = workspace.AddProject("BOA.Completion", LanguageNames.CSharp).WithMetadataReferences(references).WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                    string documentPath = Path.GetFullPath(filePath ?? "Untitled.cs");
+                    string formatting = "root = true\n[*]\nindent_style = tab\nindent_size = 4\ntab_width = 4\nend_of_line = " + (code.Contains("\r\n") ? "crlf" : "lf");
+                    project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(formatting), filePath: Path.Combine(Path.GetDirectoryName(documentPath), ".editorconfig")).Project;
 
-                var host = MefHostServices.Create(new[] { typeof(Workspace).Assembly, typeof(CSharpFormattingOptions).Assembly });
-                using var workspace = new AdhocWorkspace(host);
-                var references = CSharpScript.Create<object>(string.Empty, options).GetCompilation().References;
-                var project = workspace.AddProject("BOA.Completion", LanguageNames.CSharp).WithMetadataReferences(references).WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                    if (!string.IsNullOrEmpty(scriptsDirectory) && Directory.Exists(scriptsDirectory))
+                        foreach (string path in BoaManager.EnumerateScriptFiles(scriptsDirectory))
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            if (!string.IsNullOrEmpty(filePath) && string.Equals(Path.GetFullPath(path), Path.GetFullPath(filePath), Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                                continue;
+                            project = project.AddDocument(Path.GetFileName(path), SourceText.From(File.ReadAllText(path)), filePath: path).Project;
+                        }
 
-                if (!string.IsNullOrEmpty(scriptsDirectory) && Directory.Exists(scriptsDirectory))
-                    foreach (string path in BoaManager.EnumerateScriptFiles(scriptsDirectory))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (!string.IsNullOrEmpty(filePath) && string.Equals(Path.GetFullPath(path), Path.GetFullPath(filePath), Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-                            continue;
-                        project = project.AddDocument(Path.GetFileName(path), SourceText.From(File.ReadAllText(path)), filePath: path).Project;
-                    }
-
-                var document = project.AddDocument(Path.GetFileName(filePath ?? "Untitled.cs"), SourceText.From(code), filePath: filePath);
-                var symbols = await Recommender.GetRecommendedSymbolsAtPositionAsync(document, cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
-                string[] suggestions = symbols.Where(symbol => symbol.CanBeReferencedByName && symbol.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).Select(symbol => SyntaxFacts.GetKeywordKind(symbol.Name) != SyntaxKind.None ? "@" + symbol.Name : symbol.Name).Distinct(StringComparer.Ordinal).OrderBy(name => name.TrimStart('@').StartsWith(prefix, StringComparison.Ordinal) ? 0 : 1).ThenBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
-                return new CodeCompletionResult(start, end, suggestions);
+                    var document = project.AddDocument(Path.GetFileName(documentPath), SourceText.From(code), filePath: documentPath);
+                    var service = CompletionService.GetService(document) ?? throw new InvalidOperationException("C# completion service is unavailable.");
+                    // ScriptView requests a fresh list as the prefix changes, without a persistent Roslyn completion session.
+                    var trigger = !explicitInvocation && cursor > 0 && code[cursor - 1] is ' ' or ':' ? CompletionTrigger.CreateInsertionTrigger(code[cursor - 1]) : CompletionTrigger.Invoke;
+                    var list = await service.GetCompletionsAsync(document, cursor, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    int start = list?.Span.Start ?? cursor, end = list?.Span.End ?? cursor;
+                    string prefix = code[start..cursor].TrimStart('@');
+                    var items = list == null ? Array.Empty<CompletionItem>() : list.ItemsList.Where(item => item.FilterText.TrimStart('@').StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).OrderBy(item => item.FilterText.TrimStart('@').StartsWith(prefix, StringComparison.Ordinal) ? 0 : 1).ThenBy(item => item.SortText, StringComparer.OrdinalIgnoreCase).GroupBy(item => item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix, StringComparer.Ordinal).Select(group => group.First()).Take(100).ToArray();
+                    return new CodeCompletionResult(workspace, document, service, items, code, start, end);
+                }
+                catch
+                {
+                    workspace.Dispose();
+                    throw;
+                }
             }, cancellationToken);
         }
     }

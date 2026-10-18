@@ -18,6 +18,8 @@
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+        "Microsoft.CodeAnalysis.Features.dll",
+        "Microsoft.CodeAnalysis.CSharp.Features.dll",
         "System.Composition.Runtime.dll",
         "Microsoft.CodeAnalysis.Scripting.dll",
         "Microsoft.CodeAnalysis.CSharp.Scripting.dll"
