@@ -1,25 +1,22 @@
 using _BOA_;
-using System;
+using UnityEngine;
 
-[Serializable]
-public abstract partial class BoaComponent : IBoaAssembly
+public static partial class Boa
 {
-
-    //----------------------------------------------------------------------------------------------------------
-
-    public virtual void Start()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void Init()
     {
+        BoaManager.AddAssemblies(typeof(Boa).Assembly);
     }
 
-    //----------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------
 
-    public virtual void Update(float deltaTime)
+    public static void Log(object message, Object context = default)
     {
-    }
-
-    //----------------------------------------------------------------------------------------------------------
-
-    public virtual void Stop()
-    {
+#if HAS_SGUI
+        SguiLoggerOverlay.Log(message, context);
+#else
+        Debug.Log(message, context);
+#endif
     }
 }

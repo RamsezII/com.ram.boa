@@ -57,9 +57,9 @@ namespace _BOA_
 
         public static void AddAssemblies(params Assembly[] assemblies) => BoaManager.assemblies = BoaManager.assemblies.AddReferences(assemblies);
 
-        public static IEnumerable<Type> GetComponentTypes<T>() where T : class => scriptsAssembly?.GetTypes().Where(type => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type)) ?? Enumerable.Empty<Type>();
+        public static IEnumerable<Type> GetUserTypes<T>() where T : class => scriptsAssembly?.GetTypes().Where(type => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type)) ?? Enumerable.Empty<Type>();
 
-        public static Type GetComponentType<T>(string name) where T : class
+        public static Type GetUserType<T>(string name) where T : class
         {
             if (string.IsNullOrEmpty(name))
                 return null;
