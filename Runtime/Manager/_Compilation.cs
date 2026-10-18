@@ -41,6 +41,15 @@ namespace _BOA_
             foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
                 if (assembly.GetTypes().Any(type => typeof(IBoaAssembly).IsAssignableFrom(type)))
                     AddAssemblies(assembly);
+
+            Boa.Debug.onLog += message =>
+            {
+#if HAS_SGUI
+                SguiLoggerOverlay.Log(message);
+#else
+                Debug.Log(message);
+#endif
+            };
         }
 
         [OnCodeUnloading, OnExitingPlayMode]

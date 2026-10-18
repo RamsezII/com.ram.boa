@@ -1,16 +1,14 @@
-using UnityEngine;
+using System;
+using Unity.Scripting.LifecycleManagement;
 
 namespace Boa
 {
     public static partial class Debug
     {
-        public static void Log(object message, Object context = default)
+        [AutoStaticsCleanup] internal static Action<object> onLog;
+        public static void Log(object message)
         {
-#if HAS_SGUI
-            SguiLoggerOverlay.Log(message, context);
-#else
-            Debug.Log(message, context);
-#endif
+            onLog?.Invoke(message);
         }
     }
 }
