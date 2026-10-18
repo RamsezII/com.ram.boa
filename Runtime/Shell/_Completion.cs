@@ -56,7 +56,7 @@ namespace _BOA_
                 var project = workspace.AddProject("BOA.Completion", LanguageNames.CSharp).WithMetadataReferences(references).WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
                 if (!string.IsNullOrEmpty(scriptsDirectory) && Directory.Exists(scriptsDirectory))
-                    foreach (string path in Directory.EnumerateFiles(scriptsDirectory, "*.cs", SearchOption.AllDirectories))
+                    foreach (string path in BoaManager.EnumerateScriptFiles(scriptsDirectory))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         if (!string.IsNullOrEmpty(filePath) && string.Equals(Path.GetFullPath(path), Path.GetFullPath(filePath), Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))

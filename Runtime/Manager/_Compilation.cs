@@ -86,8 +86,8 @@ namespace _BOA_
                 var comparer = Path.DirectorySeparatorChar == '\\' ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
                 var files = new SortedSet<string>(comparer);
 
-                foreach (var file in dscripts.EnumerateFiles("*.cs", SearchOption.AllDirectories))
-                    files.Add(file.FullName);
+                foreach (string file in EnumerateScriptFiles(dscripts.FullName))
+                    files.Add(file);
 
                 var compilation = CSharpCompilation.Create(
                     assemblyName: $"MACHINECODE_{Guid.NewGuid():N}",
@@ -95,6 +95,15 @@ namespace _BOA_
                     references: CSharpScript.Create<object>(code: string.Empty, options: assemblies).GetCompilation().References,
                     options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 );
+
+                try
+                {
+                    WriteScriptsProject(dscripts, compilation);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"Could not generate the BOA scripts project: {exception.Message}");
+                }
 
                 using var stream = new MemoryStream();
                 var result = compilation.Emit(stream);
