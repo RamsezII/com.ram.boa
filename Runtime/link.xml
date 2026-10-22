@@ -1,0 +1,23 @@
+<linker>
+    <!-- BOA scripts reference this API after the player has been stripped. -->
+    <assembly fullname="ram._BOA_.Dev" preserve="all" />
+
+    <!-- Roslyn discovers language services and completion providers through reflection. -->
+    <assembly fullname="Microsoft.CodeAnalysis" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.CSharp" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.Scripting" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.CSharp.Scripting" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.Workspaces" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.CSharp.Workspaces" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.Features" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.CSharp.Features" preserve="all" />
+    <assembly fullname="Microsoft.CodeAnalysis.Elfie" preserve="all" />
+    <assembly fullname="Humanizer" preserve="all" />
+
+    <!-- MEF inspects export attributes, constructors and implemented interfaces. -->
+    <assembly fullname="System.Composition.AttributedModel" preserve="all" />
+    <assembly fullname="System.Composition.Convention" preserve="all" />
+    <assembly fullname="System.Composition.Hosting" preserve="all" />
+    <assembly fullname="System.Composition.Runtime" preserve="all" />
+    <assembly fullname="System.Composition.TypedParts" preserve="all" />
+</linker>
