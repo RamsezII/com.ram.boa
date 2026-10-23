@@ -21,6 +21,8 @@
         "Microsoft.CodeAnalysis.Features.dll",
         "Microsoft.CodeAnalysis.CSharp.Features.dll",
         "System.Composition.Runtime.dll",
+        "System.Composition.Hosting.dll",
+        "System.Composition.TypedParts.dll",
         "Microsoft.CodeAnalysis.Scripting.dll",
         "Microsoft.CodeAnalysis.CSharp.Scripting.dll"
     ],

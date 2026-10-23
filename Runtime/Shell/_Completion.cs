@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -69,7 +70,8 @@ namespace _BOA_
 
     partial class Shell
     {
-        [NoAutoStaticsCleanup] static readonly Lazy<MefHostServices> completionHost = new(() => MefHostServices.Create(new[] { typeof(Workspace).Assembly, typeof(CSharpFormattingOptions).Assembly, typeof(CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features") }));
+        [NoAutoStaticsCleanup] static readonly Lazy<CompositionHost> completionComposition = new(() => new ContainerConfiguration().WithAssemblies(new[] { typeof(Workspace).Assembly, typeof(CSharpFormattingOptions).Assembly, typeof(CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features") }).CreateContainer());
+        [NoAutoStaticsCleanup] static readonly Lazy<MefHostServices> completionHost = new(() => MefHostServices.Create(completionComposition.Value));
 
         public static Task<CodeCompletionResult> CompleteCodeAsync(string code, int cursor, string filePath = null, string scriptsDirectory = null, CancellationToken cancellationToken = default, bool explicitInvocation = false)
         {
@@ -86,22 +88,7 @@ namespace _BOA_
                 var workspace = new AdhocWorkspace(completionHost.Value);
                 try
                 {
-                    var references = CSharpScript.Create<object>(string.Empty, options).GetCompilation().References;
-                    var project = workspace.AddProject("BOA.Completion", LanguageNames.CSharp).WithMetadataReferences(references).WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-                    string documentPath = Path.GetFullPath(filePath ?? "Untitled.cs");
-                    string formatting = "root = true\n[*]\nindent_style = tab\nindent_size = 4\ntab_width = 4\nend_of_line = " + (code.Contains("\r\n") ? "crlf" : "lf");
-                    project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(formatting), filePath: Path.Combine(Path.GetDirectoryName(documentPath), ".editorconfig")).Project;
-
-                    if (!string.IsNullOrEmpty(scriptsDirectory) && Directory.Exists(scriptsDirectory))
-                        foreach (string path in BoaManager.EnumerateScriptFiles(scriptsDirectory))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            if (!string.IsNullOrEmpty(filePath) && string.Equals(Path.GetFullPath(path), Path.GetFullPath(filePath), Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-                                continue;
-                            project = project.AddDocument(Path.GetFileName(path), SourceText.From(File.ReadAllText(path)), filePath: path).Project;
-                        }
-
-                    var document = project.AddDocument(Path.GetFileName(documentPath), SourceText.From(code), filePath: documentPath);
+                    var document = CreateCodeDocument(workspace, code, filePath, scriptsDirectory, options, cancellationToken);
                     var service = CompletionService.GetService(document) ?? throw new InvalidOperationException("C# completion service is unavailable.");
                     // ScriptView requests a fresh list as the prefix changes, without a persistent Roslyn completion session.
                     var trigger = !explicitInvocation && cursor > 0 && code[cursor - 1] is ' ' or ':' ? CompletionTrigger.CreateInsertionTrigger(code[cursor - 1]) : CompletionTrigger.Invoke;
@@ -117,6 +104,26 @@ namespace _BOA_
                     throw;
                 }
             }, cancellationToken);
+        }
+
+        static Document CreateCodeDocument(AdhocWorkspace workspace, string code, string filePath, string scriptsDirectory, ScriptOptions options, CancellationToken cancellationToken)
+        {
+            var references = CSharpScript.Create<object>(string.Empty, options).GetCompilation().References;
+            var project = workspace.AddProject("BOA.Code", LanguageNames.CSharp).WithMetadataReferences(references).WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            string documentPath = Path.GetFullPath(filePath ?? "Untitled.cs");
+            string formatting = "root = true\n[*]\nindent_style = tab\nindent_size = 4\ntab_width = 4\nend_of_line = " + (code.Contains("\r\n") ? "crlf" : "lf");
+            project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(formatting), filePath: Path.Combine(Path.GetDirectoryName(documentPath), ".editorconfig")).Project;
+
+            if (!string.IsNullOrEmpty(scriptsDirectory) && Directory.Exists(scriptsDirectory))
+                foreach (string path in BoaManager.EnumerateScriptFiles(scriptsDirectory))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!string.IsNullOrEmpty(filePath) && string.Equals(Path.GetFullPath(path), documentPath, Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                        continue;
+                    project = project.AddDocument(Path.GetFileName(path), SourceText.From(File.ReadAllText(path)), filePath: path).Project;
+                }
+
+            return project.AddDocument(Path.GetFileName(documentPath), SourceText.From(code), filePath: documentPath);
         }
     }
 }
