@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Scripting;
 
 namespace _BOA_
 {
-    public sealed partial class Shell : ArkShell
+    public sealed class Shell : ArkShell
     {
         ScriptState<object> state;
 

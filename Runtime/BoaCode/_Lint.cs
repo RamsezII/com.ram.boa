@@ -10,16 +10,10 @@ using UnityEngine;
 
 namespace _BOA_
 {
-    partial class Shell
+    public static partial class BoaCode
     {
 
         //----------------------------------------------------------------------------------------------------------
-
-        public static void Lint(in string text, in LintTheme theme, out string lint, out string error)
-        {
-            lint = HighlightCode(text, theme);
-            error = GetCodeDiagnostic(text, BoaManager.assemblies, GetDiagnosticColors(theme), default);
-        }
 
         public static string HighlightCode(in string text, in LintTheme theme)
         {

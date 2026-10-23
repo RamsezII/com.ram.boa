@@ -54,7 +54,7 @@ namespace _BOA_
         public void Dispose() => workspace.Dispose();
     }
 
-    partial class Shell
+    public static partial class BoaCode
     {
         [NoAutoStaticsCleanup] static readonly Lazy<CodeFixProvider[]> importFixProviders = new(() => completionComposition.Value.GetExports<Lazy<CodeFixProvider, IDictionary<string, object>>>().Where(export => export.Metadata.TryGetValue("Name", out var name) && name is "AddImport" or "FullyQualify").OrderBy(export => (string)export.Metadata["Name"] == "AddImport" ? 0 : 1).Select(export => export.Value).ToArray());
 

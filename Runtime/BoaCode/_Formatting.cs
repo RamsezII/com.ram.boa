@@ -9,14 +9,8 @@ using System.Linq;
 
 namespace _BOA_
 {
-    partial class Shell
+    public static partial class BoaCode
     {
-        public static string FormatCode(string code)
-        {
-            int anchor = 0, focus = 0;
-            return FormatCode(code, ref anchor, ref focus);
-        }
-
         public static string FormatCode(string code, ref int selectionAnchor, ref int selectionFocus)
         {
             if (code == null)

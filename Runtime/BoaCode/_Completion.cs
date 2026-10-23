@@ -68,7 +68,7 @@ namespace _BOA_
         public void Dispose() => workspace.Dispose();
     }
 
-    partial class Shell
+    public static partial class BoaCode
     {
         [NoAutoStaticsCleanup] static readonly Lazy<CompositionHost> completionComposition = new(() => new ContainerConfiguration().WithAssemblies(new[] { typeof(Workspace).Assembly, typeof(CSharpFormattingOptions).Assembly, typeof(CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features") }).CreateContainer());
         [NoAutoStaticsCleanup] static readonly Lazy<MefHostServices> completionHost = new(() => MefHostServices.Create(completionComposition.Value));
