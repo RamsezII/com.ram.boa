@@ -36,20 +36,11 @@ namespace _BOA_
 
             AddAssemblies(Assembly.Load("netstandard"));
             AddAssemblies(Assembly.Load("UnityEngine.CoreModule"));
-            AddAssemblies(typeof(Boa.Main).Assembly);
+            AddAssemblies(typeof(Boa.Init).Assembly);
 
             foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
                 if (assembly.GetTypes().Any(type => typeof(IBoaAssembly).IsAssignableFrom(type)))
                     AddAssemblies(assembly);
-
-            Boa.Debug.onLog += message =>
-            {
-#if HAS_SGUI
-                SguiLoggerOverlay.Log(message);
-#else
-                Debug.Log(message);
-#endif
-            };
         }
 
         [OnCodeUnloading, OnExitingPlayMode]
@@ -66,7 +57,7 @@ namespace _BOA_
 
         //----------------------------------------------------------------------------------------------------------
 
-        public static void AddAssemblies(params Assembly[] assemblies) => BoaManager.assemblies = BoaManager.assemblies.AddReferences(assemblies);
+        public static void AddAssemblies(params Assembly[] assemblies) => BoaManager.assemblies = BoaManager.assemblies.AddReferences(assemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.GetLoadedAssemblyPath())));
 
         public static IEnumerable<Type> GetUserTypes<T>() where T : class => scriptsAssembly?.GetTypes().Where(type => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type)) ?? Enumerable.Empty<Type>();
 

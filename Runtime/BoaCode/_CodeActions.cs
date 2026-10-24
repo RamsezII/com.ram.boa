@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Scripting.LifecycleManagement;
+using UnityEngine;
 
 namespace _BOA_
 {
@@ -65,7 +66,7 @@ namespace _BOA_
             if (cursor < 0 || cursor > code.Length)
                 throw new ArgumentOutOfRangeException(nameof(cursor));
 
-            var options = BoaManager.assemblies ?? ScriptOptions.Default.AddReferences(typeof(UnityEngine.Vector3).Assembly, typeof(Boa.Main).Assembly);
+            var options = BoaManager.assemblies ?? ScriptOptions.Default.AddReferences(MetadataReference.CreateFromFile(typeof(UnityEngine.Vector3).Assembly.GetLoadedAssemblyPath()), MetadataReference.CreateFromFile(typeof(Boa.Init).Assembly.GetLoadedAssemblyPath()));
             return Task.Run(async () =>
             {
                 cancellationToken.ThrowIfCancellationRequested();

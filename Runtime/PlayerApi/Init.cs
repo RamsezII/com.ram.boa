@@ -4,7 +4,7 @@
 
 namespace Boa
 {
-    internal static partial class Main
+    internal static class Init
     {
     }
 }
