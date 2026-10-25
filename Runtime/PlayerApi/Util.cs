@@ -6,6 +6,5 @@ namespace Boa
 {
     public static partial class Util
     {
-        public static T As<T>(this object o) => (T)o;
     }
 }
