@@ -81,7 +81,7 @@ namespace _BOA_
             if (cursor < 0 || cursor > code.Length)
                 throw new ArgumentOutOfRangeException(nameof(cursor));
 
-            var options = BoaManager.assemblies ?? ScriptOptions.Default.AddReferences(MetadataReference.CreateFromFile(typeof(UnityEngine.Vector3).Assembly.GetLoadedAssemblyPath()), MetadataReference.CreateFromFile(typeof(Boa.Init).Assembly.GetLoadedAssemblyPath()));
+            var options = BoaManager.assemblies ?? ScriptOptions.Default.AddReferences(MetadataReference.CreateFromFile(typeof(UnityEngine.Vector3).Assembly.GetLoadedAssemblyPath()), MetadataReference.CreateFromFile(typeof(Boa.Util).Assembly.GetLoadedAssemblyPath()));
             return Task.Run(async () =>
             {
                 cancellationToken.ThrowIfCancellationRequested();

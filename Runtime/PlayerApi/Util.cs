@@ -4,7 +4,8 @@
 
 namespace Boa
 {
-    internal static class Init
+    public static partial class Util
     {
+        public static T As<T>(this object o) => (T)o;
     }
 }
