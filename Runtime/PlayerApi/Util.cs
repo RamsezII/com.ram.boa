@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ram._BOA_")]
+[assembly: InternalsVisibleTo("shitstorm._BOA_")]
 
 namespace Boa
 {

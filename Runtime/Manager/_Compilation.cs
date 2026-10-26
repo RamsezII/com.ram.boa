@@ -70,10 +70,13 @@ namespace _BOA_
             return type != null && type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type) ? type : null;
         }
 
-        public static bool CompileScripts()
+        public static void CompileScripts() => CompileScripts(out _);
+        public static void CompileScripts(out bool success)
         {
+            success = false;
+
             if (compiling)
-                return false;
+                return;
 
             compiling = true;
             Debug.Log($"Start compiling".ToSubLog());
@@ -133,7 +136,7 @@ namespace _BOA_
                 }
 
                 if (!result.Success)
-                    return false;
+                    return;
 
                 nextContext = new ScriptLoadContext(compilation.AssemblyName);
                 stream.Position = 0;
@@ -156,12 +159,13 @@ namespace _BOA_
                     previous?.Unload();
                 }
 
-                return true;
+                success = true;
+                return;
             }
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                return false;
+                return;
             }
             finally
             {

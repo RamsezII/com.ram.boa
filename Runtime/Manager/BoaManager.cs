@@ -25,6 +25,17 @@ namespace _BOA_
             base.Awake();
 
             CompileScripts();
+
+            NUCLEOR.delegates.OnApplicationFocus += CompileScripts;
+        }
+
+        //----------------------------------------------------------------------------------------------------------
+
+        protected override void OnDestroy()
+        {
+            NUCLEOR.delegates.OnApplicationFocus -= CompileScripts;
+
+            base.OnDestroy();
         }
     }
 }
