@@ -57,6 +57,9 @@ namespace _BOA_
 
         //----------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// please call during [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        /// </summary>
         public static void AddAssemblies(params Assembly[] assemblies) => BoaManager.assemblies = BoaManager.assemblies.AddReferences(assemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.GetLoadedAssemblyPath())));
 
         public static IEnumerable<Type> GetUserTypes<T>() where T : class => scriptsAssembly?.GetTypes().Where(type => type.IsClass && !type.IsAbstract && !type.ContainsGenericParameters && typeof(T).IsAssignableFrom(type)) ?? Enumerable.Empty<Type>();
