@@ -31,9 +31,19 @@ namespace _BOA_
 
         //----------------------------------------------------------------------------------------------------------
 
+        void Update() => UpdateCompilation();
+
+        //----------------------------------------------------------------------------------------------------------
+
         protected override void OnDestroy()
         {
             NUCLEOR.delegates.OnApplicationFocus -= CompileScripts;
+
+            if (instance == this)
+            {
+                instance = null;
+                UnloadScripts();
+            }
 
             base.OnDestroy();
         }

@@ -5,9 +5,6 @@
         "GUID:ec96f6dc48fee4244bcebc247464e471",
         "GUID:2a84e452762c9634994f1da664544658",
         "GUID:a30d2e7b10eb07947bce91ff0b5eb4bf",
-        "GUID:02bff2b282f91b84680849955c7860bc",
-        "GUID:0308a0376a5119646aa5084f7da0a023",
-        "GUID:84fa75d71d64bc04e87c47a81fe0ee9c",
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
@@ -29,22 +26,6 @@
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.ram16.terminal",
-            "expression": "",
-            "define": "HAS_TERMINAL"
-        },
-        {
-            "name": "com.ram16.term",
-            "expression": "",
-            "define": "HAS_TERM"
-        },
-        {
-            "name": "com.ram16.sgui",
-            "expression": "",
-            "define": "HAS_SGUI"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

@@ -4,23 +4,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml.Linq;
 
 namespace _BOA_
 {
     partial class BoaManager
     {
-        internal static IEnumerable<string> EnumerateScriptFiles(string directory)
+        internal static IEnumerable<string> EnumerateScriptFiles(string directory, CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             foreach (string file in Directory.EnumerateFiles(directory, "*.cs"))
+            {
+                token.ThrowIfCancellationRequested();
                 yield return file;
+            }
 
             foreach (string child in Directory.EnumerateDirectories(directory))
             {
+                token.ThrowIfCancellationRequested();
                 string name = Path.GetFileName(child);
                 if (name.Equals("bin", StringComparison.OrdinalIgnoreCase) || name.Equals("obj", StringComparison.OrdinalIgnoreCase))
                     continue;
-                foreach (string file in EnumerateScriptFiles(child))
+                foreach (string file in EnumerateScriptFiles(child, token))
                     yield return file;
             }
         }
