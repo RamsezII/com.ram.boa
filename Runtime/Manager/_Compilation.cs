@@ -137,7 +137,7 @@ namespace _BOA_
         static CompilationRequest StartCompilation(TaskCompletionSource<bool> completion)
         {
             // Snapshot Unity-owned state before scheduling; the worker only receives managed data.
-            string directory = Path.Combine(NUCLEOR.DFHome.FullName, "scripts");
+            string directory = NUCLEOR.DFScripts.FullName;
             ScriptOptions options = assemblies;
             var request = new CompilationRequest(completion);
             var token = request.Cancellation.Token;
